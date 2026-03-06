@@ -16,4 +16,6 @@ public class Warehouse {
   public LocalDateTime createdAt;
 
   public LocalDateTime archivedAt;
+
+  public Long version;
 }
