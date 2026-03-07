@@ -100,6 +100,7 @@ public class StoreResource {
     }
 
     if (updatedStore.quantityProductsInStock != null) {
+
       entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
     }
 

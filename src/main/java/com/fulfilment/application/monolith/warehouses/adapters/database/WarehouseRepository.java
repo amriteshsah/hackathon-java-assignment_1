@@ -37,6 +37,7 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
           "Warehouse with business unit code '"
               + warehouse.businessUnitCode
               + "' cannot be updated without a version");
+
     }
 
     int updatedRows =
