@@ -20,6 +20,26 @@ public class CreateWarehouseUseCase implements CreateWarehouseOperation {
 
   @Override
   public void create(Warehouse warehouse) {
+    if (warehouse == null) {
+      throw new IllegalArgumentException("Warehouse cannot be null");
+    }
+
+    if (warehouse.businessUnitCode == null || warehouse.businessUnitCode.isBlank()) {
+      throw new IllegalArgumentException("Business unit code is required");
+    }
+
+    if (warehouse.location == null || warehouse.location.isBlank()) {
+      throw new IllegalArgumentException("Location is required");
+    }
+
+    if (warehouse.capacity == null || warehouse.capacity < 0) {
+      throw new IllegalArgumentException("Warehouse capacity must be zero or greater");
+    }
+
+    if (warehouse.stock == null || warehouse.stock < 0) {
+      throw new IllegalArgumentException("Warehouse stock must be zero or greater");
+    }
+
     // Validation 1: Business unit code must be unique
     Warehouse existing = warehouseStore.findByBusinessUnitCode(warehouse.businessUnitCode);
     if (existing != null) {

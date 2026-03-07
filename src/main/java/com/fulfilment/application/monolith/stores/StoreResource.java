@@ -29,8 +29,6 @@ import org.jboss.logging.Logger;
 @Consumes("application/json")
 public class StoreResource {
 
-  @Inject LegacyStoreManagerGateway legacyStoreManagerGateway;
-  
   @Inject Event<StoreCreatedEvent> storeCreatedEvent;
   
   @Inject Event<StoreUpdatedEvent> storeUpdatedEvent;
@@ -101,7 +99,8 @@ public class StoreResource {
       entity.name = updatedStore.name;
     }
 
-    if (updatedStore.quantityProductsInStock != 0) {
+    if (updatedStore.quantityProductsInStock != null) {
+
       entity.quantityProductsInStock = updatedStore.quantityProductsInStock;
     }
 
