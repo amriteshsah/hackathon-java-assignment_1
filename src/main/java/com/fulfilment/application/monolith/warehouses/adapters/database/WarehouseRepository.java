@@ -33,12 +33,11 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   public void update(Warehouse warehouse) {
     Long versionToUse = warehouse.version;
     if (versionToUse == null) {
-      DbWarehouse current = find("businessUnitCode", warehouse.businessUnitCode).firstResult();
-      if (current == null) {
-        throw new IllegalArgumentException(
-            "Warehouse with business unit code '" + warehouse.businessUnitCode + "' does not exist");
-      }
-      versionToUse = current.version;
+      throw new IllegalArgumentException(
+          "Warehouse with business unit code '"
+              + warehouse.businessUnitCode
+              + "' cannot be updated without a version");
+
     }
 
     int updatedRows =
