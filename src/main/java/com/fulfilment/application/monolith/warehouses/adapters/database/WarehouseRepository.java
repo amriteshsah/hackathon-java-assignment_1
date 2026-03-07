@@ -4,6 +4,7 @@ import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.OptimisticLockException;
 import java.util.List;
 
 @ApplicationScoped
@@ -24,30 +25,47 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
     dbWarehouse.createdAt = warehouse.createdAt;
     dbWarehouse.archivedAt = warehouse.archivedAt;
     
-    this.persist(dbWarehouse);
+    this.persistAndFlush(dbWarehouse);
+    warehouse.version = dbWarehouse.version;
   }
 
   @Override
   public void update(Warehouse warehouse) {
-    getEntityManager().createQuery(
-      "UPDATE DbWarehouse w SET w.location = :loc, w.capacity = :cap, " +
-      "w.stock = :stock, w.archivedAt = :archived WHERE w.businessUnitCode = :code")
-      .setParameter("loc", warehouse.location)
-      .setParameter("cap", warehouse.capacity)
-      .setParameter("stock", warehouse.stock)
-      .setParameter("archived", warehouse.archivedAt)
-      .setParameter("code", warehouse.businessUnitCode)
-      .executeUpdate();
+    Long versionToUse = warehouse.version;
+    if (versionToUse == null) {
+      throw new IllegalArgumentException(
+          "Warehouse with business unit code '"
+              + warehouse.businessUnitCode
+              + "' cannot be updated without a version");
+    }
 
-    // Clear persistence context to see updates in subsequent queries
-    getEntityManager().flush();
-    getEntityManager().clear();
+    int updatedRows =
+        getEntityManager()
+            .createQuery(
+                "UPDATE DbWarehouse w SET w.location = :loc, w.capacity = :cap, "
+                    + "w.stock = :stock, w.archivedAt = :archived, w.version = w.version + 1 "
+                    + "WHERE w.businessUnitCode = :code AND w.version = :version")
+            .setParameter("loc", warehouse.location)
+            .setParameter("cap", warehouse.capacity)
+            .setParameter("stock", warehouse.stock)
+            .setParameter("archived", warehouse.archivedAt)
+            .setParameter("code", warehouse.businessUnitCode)
+            .setParameter("version", versionToUse)
+            .executeUpdate();
+
+    if (updatedRows == 0) {
+      throw new OptimisticLockException(
+          "Warehouse with business unit code '"
+              + warehouse.businessUnitCode
+              + "' was concurrently modified");
+    }
+
+    warehouse.version = versionToUse + 1;
   }
 
   @Override
   public void remove(Warehouse warehouse) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'remove'");
+    delete("businessUnitCode", warehouse.businessUnitCode);
   }
 
   @Override

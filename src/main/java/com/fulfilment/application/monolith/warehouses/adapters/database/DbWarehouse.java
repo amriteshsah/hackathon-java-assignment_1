@@ -43,6 +43,7 @@ public class DbWarehouse {
     warehouse.stock = this.stock;
     warehouse.createdAt = this.createdAt;
     warehouse.archivedAt = this.archivedAt;
+    warehouse.version = this.version;
     return warehouse;
   }
 }
