@@ -24,45 +24,34 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
     dbWarehouse.stock = warehouse.stock;
     dbWarehouse.createdAt = warehouse.createdAt;
     dbWarehouse.archivedAt = warehouse.archivedAt;
-    
+
     this.persistAndFlush(dbWarehouse);
     warehouse.version = dbWarehouse.version;
   }
 
   @Override
   public void update(Warehouse warehouse) {
-    Long versionToUse = warehouse.version;
-    if (versionToUse == null) {
-      DbWarehouse current = find("businessUnitCode", warehouse.businessUnitCode).firstResult();
-      if (current == null) {
-        throw new IllegalArgumentException(
-            "Warehouse with business unit code '" + warehouse.businessUnitCode + "' does not exist");
-      }
-      versionToUse = current.version;
+    DbWarehouse current = find("businessUnitCode", warehouse.businessUnitCode).firstResult();
+    if (current == null) {
+      throw new IllegalArgumentException(
+          "Warehouse with business unit code '" + warehouse.businessUnitCode + "' does not exist");
     }
 
-    int updatedRows =
-        getEntityManager()
-            .createQuery(
-                "UPDATE DbWarehouse w SET w.location = :loc, w.capacity = :cap, "
-                    + "w.stock = :stock, w.archivedAt = :archived, w.version = w.version + 1 "
-                    + "WHERE w.businessUnitCode = :code AND w.version = :version")
-            .setParameter("loc", warehouse.location)
-            .setParameter("cap", warehouse.capacity)
-            .setParameter("stock", warehouse.stock)
-            .setParameter("archived", warehouse.archivedAt)
-            .setParameter("code", warehouse.businessUnitCode)
-            .setParameter("version", versionToUse)
-            .executeUpdate();
-
-    if (updatedRows == 0) {
+    if (warehouse.version != null && !current.version.equals(warehouse.version)) {
       throw new OptimisticLockException(
           "Warehouse with business unit code '"
               + warehouse.businessUnitCode
               + "' was concurrently modified");
     }
 
-    warehouse.version = versionToUse + 1;
+    current.location = warehouse.location;
+    current.capacity = warehouse.capacity;
+    current.stock = warehouse.stock;
+    current.archivedAt = warehouse.archivedAt;
+
+    this.persistAndFlush(current);
+
+    warehouse.version = current.version;
   }
 
   @Override

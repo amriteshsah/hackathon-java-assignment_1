@@ -21,7 +21,6 @@ java -version
 ```bash
 ./mvnw clean install
 ```
-
 This will:
 - Download dependencies
 - Compile source code
