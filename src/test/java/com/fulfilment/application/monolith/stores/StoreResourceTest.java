@@ -13,7 +13,7 @@ class StoreResourceTest {
   void shouldCreateUpdatePatchAndDeleteStore() {
     String uniqueName = "StoreResourceTest_" + System.currentTimeMillis();
 
-    Long storeId =
+    Number storeId =
         given()
             .contentType("application/json")
             .body("{\"name\":\"" + uniqueName + "\",\"quantityProductsInStock\":5}")
@@ -25,9 +25,11 @@ class StoreResourceTest {
             .extract()
             .path("id");
 
+    long storeIdValue = storeId.longValue();
+
     given()
         .when()
-        .get("/store/" + storeId)
+        .get("/store/" + storeIdValue)
         .then()
         .statusCode(200)
         .body("name", equalTo(uniqueName))
@@ -37,7 +39,7 @@ class StoreResourceTest {
         .contentType("application/json")
         .body("{\"quantityProductsInStock\":10}")
         .when()
-        .put("/store/" + storeId)
+        .put("/store/" + storeIdValue)
         .then()
         .statusCode(422);
 
@@ -45,7 +47,7 @@ class StoreResourceTest {
         .contentType("application/json")
         .body("{\"name\":\"" + uniqueName + "_updated\",\"quantityProductsInStock\":12}")
         .when()
-        .put("/store/" + storeId)
+        .put("/store/" + storeIdValue)
         .then()
         .statusCode(200)
         .body("name", equalTo(uniqueName + "_updated"))
@@ -55,15 +57,15 @@ class StoreResourceTest {
         .contentType("application/json")
         .body("{\"quantityProductsInStock\":20}")
         .when()
-        .patch("/store/" + storeId)
+        .patch("/store/" + storeIdValue)
         .then()
         .statusCode(200)
         .body("name", equalTo(uniqueName + "_updated"))
         .body("quantityProductsInStock", equalTo(20));
 
-    given().when().delete("/store/" + storeId).then().statusCode(204);
+    given().when().delete("/store/" + storeIdValue).then().statusCode(204);
 
-    given().when().get("/store/" + storeId).then().statusCode(404);
+    given().when().get("/store/" + storeIdValue).then().statusCode(404);
   }
 
   @Test
