@@ -128,11 +128,13 @@ public class StoreResource {
 
     @Override
     public Response toResponse(Exception exception) {
-      LOGGER.error("Failed to handle request", exception);
-
       int code = 500;
       if (exception instanceof WebApplicationException) {
         code = ((WebApplicationException) exception).getResponse().getStatus();
+        LOGGER.debugf(
+            "Request failed with HTTP %d: %s", code, exception.getMessage() == null ? "" : exception.getMessage());
+      } else {
+        LOGGER.error("Failed to handle request", exception);
       }
 
       ObjectNode exceptionJson = objectMapper.createObjectNode();
