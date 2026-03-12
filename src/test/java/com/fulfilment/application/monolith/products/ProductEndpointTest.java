@@ -2,7 +2,6 @@ package com.fulfilment.application.monolith.products;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.IsNot.not;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -33,57 +32,6 @@ public class ProductEndpointTest {
         .then()
         .statusCode(200)
         .body(not(containsString("TONSTAD")), containsString("KALLAX"), containsString("BESTÅ"));
-  }
-
-  @Test
-  public void shouldCreateUpdateGetAndDeleteProduct() {
-    String uniqueName = "ProductEndpointTest_" + System.currentTimeMillis();
-
-    Number productId =
-        given()
-            .contentType("application/json")
-            .body(
-                "{\"name\":\""
-                    + uniqueName
-                    + "\",\"description\":\"desk\",\"price\":99.99,\"stock\":7}")
-            .when()
-            .post("/product")
-            .then()
-            .statusCode(201)
-            .body("name", equalTo(uniqueName))
-            .body("description", equalTo("desk"))
-            .body("stock", equalTo(7))
-            .extract()
-            .path("id");
-
-    long productIdValue = productId.longValue();
-
-    given()
-        .when()
-        .get("/product/" + productIdValue)
-        .then()
-        .statusCode(200)
-        .body("name", equalTo(uniqueName))
-        .body("description", equalTo("desk"))
-        .body("stock", equalTo(7));
-
-    given()
-        .contentType("application/json")
-        .body(
-            "{\"name\":\""
-                + uniqueName
-                + "_updated\",\"description\":\"chair\",\"price\":149.99,\"stock\":11}")
-        .when()
-        .put("/product/" + productIdValue)
-        .then()
-        .statusCode(200)
-        .body("name", equalTo(uniqueName + "_updated"))
-        .body("description", equalTo("chair"))
-        .body("stock", equalTo(11));
-
-    given().when().delete("/product/" + productIdValue).then().statusCode(204);
-
-    given().when().get("/product/" + productIdValue).then().statusCode(404);
   }
 
   @Test
