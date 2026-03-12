@@ -22,7 +22,7 @@ public class CreateWarehouseUseCase implements CreateWarehouseOperation {
   }
 
   @Override
-  public void create(Warehouse warehouse) {
+  public Warehouse create(Warehouse warehouse) {
     if (warehouse == null) {
       throw new IllegalArgumentException("Warehouse cannot be null");
     }
@@ -78,5 +78,6 @@ public class CreateWarehouseUseCase implements CreateWarehouseOperation {
     warehouseStore.create(warehouse);
 
     LOG.infov("Warehouse {0} created successfully", warehouse.businessUnitCode);
+    return warehouse;
   }
 }

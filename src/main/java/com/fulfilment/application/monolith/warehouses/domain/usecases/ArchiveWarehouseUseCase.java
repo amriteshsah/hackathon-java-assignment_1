@@ -18,7 +18,7 @@ public class ArchiveWarehouseUseCase implements ArchiveWarehouseOperation {
   }
 
   @Override
-  public void archive(Warehouse warehouse) {
+  public Warehouse archive(Warehouse warehouse) {
     LOG.infov("Archiving warehouse with business unit code {0}", warehouse.businessUnitCode);
 
     Warehouse existing = warehouseStore.findByBusinessUnitCode(warehouse.businessUnitCode);
@@ -38,5 +38,6 @@ public class ArchiveWarehouseUseCase implements ArchiveWarehouseOperation {
     warehouseStore.update(existing);
 
     LOG.infov("Warehouse {0} archived successfully", warehouse.businessUnitCode);
+    return existing;
   }
 }

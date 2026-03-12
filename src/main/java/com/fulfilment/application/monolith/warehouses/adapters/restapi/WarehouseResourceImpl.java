@@ -43,10 +43,10 @@ public class WarehouseResourceImpl implements WarehouseResource {
     try {
       LOG.infov("Creating warehouse via API for business unit code {0}", domainWarehouse.businessUnitCode);
       // Create warehouse through use case (includes validations)
-      createWarehouseOperation.create(domainWarehouse);
-      
+      var created = createWarehouseOperation.create(domainWarehouse);
+
       // Return the created warehouse
-      return toWarehouseResponse(domainWarehouse);
+      return toWarehouseResponse(created);
     } catch (IllegalArgumentException e) {
       throw new WebApplicationException(e.getMessage(), 400);
     }
@@ -97,10 +97,9 @@ public class WarehouseResourceImpl implements WarehouseResource {
     try {
       LOG.infov("Replacing warehouse via API for business unit code {0}", businessUnitCode);
       // Replace warehouse through use case (includes validations)
-      replaceWarehouseOperation.replace(domainWarehouse);
+      var updated = replaceWarehouseOperation.replace(domainWarehouse);
 
       // Return the updated warehouse
-      var updated = warehouseRepository.findByBusinessUnitCode(businessUnitCode);
       return toWarehouseResponse(updated);
     } catch (IllegalArgumentException e) {
       throw new WebApplicationException(e.getMessage(), 400);
