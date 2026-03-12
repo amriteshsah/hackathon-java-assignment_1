@@ -76,8 +76,6 @@ public class ProductResource {
     entity.price = product.price;
     entity.stock = product.stock;
 
-    productRepository.persist(entity);
-
     return entity;
   }
 
