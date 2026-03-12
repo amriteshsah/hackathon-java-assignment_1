@@ -105,7 +105,7 @@ class CreateWarehouseUseCaseTest {
 
     when(warehouseStore.findByBusinessUnitCode("BU-001")).thenReturn(null);
     when(locationResolver.resolveByIdentifier("AMSTERDAM-001"))
-        .thenReturn(new Location("AMSTERDAM-001", 100));
+        .thenReturn(new Location("AMSTERDAM-001", 10, 100));
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> useCase.create(warehouse));
