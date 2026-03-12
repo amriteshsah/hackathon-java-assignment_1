@@ -141,7 +141,6 @@ public class WarehouseConcurrencyIT {
    * Test concurrent reads don't block each other (read scalability).
    */
   @Test
-  @Transactional
   public void testConcurrentReadsAreNonBlocking() throws InterruptedException {
     // Create a warehouse first
     Warehouse warehouse = new Warehouse();

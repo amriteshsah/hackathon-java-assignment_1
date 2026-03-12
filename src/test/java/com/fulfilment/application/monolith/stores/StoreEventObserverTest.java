@@ -1,7 +1,7 @@
 package com.fulfilment.application.monolith.stores;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.junit.QuarkusMock;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,14 +17,15 @@ public class StoreEventObserverTest {
   @Inject
   StoreEventObserver storeEventObserver;
 
-  @InjectMock
-  LegacyStoreManagerGateway legacyGateway;
+  private LegacyStoreManagerGateway legacyGateway;
 
   private Store testStore;
 
   @BeforeEach
   @Transactional
   public void setup() {
+    legacyGateway = mock(LegacyStoreManagerGateway.class);
+    QuarkusMock.installMockForType(legacyGateway, LegacyStoreManagerGateway.class);
     Store.deleteAll();
     
     testStore = new Store();
