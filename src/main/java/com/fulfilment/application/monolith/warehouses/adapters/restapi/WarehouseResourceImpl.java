@@ -12,9 +12,12 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.WebApplicationException;
 import java.util.List;
+import org.jboss.logging.Logger;
 
 @RequestScoped
 public class WarehouseResourceImpl implements WarehouseResource {
+
+  private static final Logger LOG = Logger.getLogger(WarehouseResourceImpl.class);
 
   @Inject private WarehouseRepository warehouseRepository;
   @Inject private CreateWarehouseOperation createWarehouseOperation;
@@ -23,6 +26,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
 
   @Override
   public List<Warehouse> listAllWarehousesUnits() {
+    LOG.debug("Listing all warehouse units");
     return warehouseRepository.getAll().stream().map(this::toWarehouseResponse).toList();
   }
 
@@ -37,6 +41,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
     domainWarehouse.stock = data.getStock() != null ? data.getStock() : 0;
 
     try {
+      LOG.infov("Creating warehouse via API for business unit code {0}", domainWarehouse.businessUnitCode);
       // Create warehouse through use case (includes validations)
       createWarehouseOperation.create(domainWarehouse);
       
@@ -70,6 +75,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
     }
 
     try {
+      LOG.infov("Archiving warehouse via API for business unit code {0}", id);
       // Archive warehouse through use case (includes validations)
       archiveWarehouseOperation.archive(domainWarehouse);
     } catch (IllegalArgumentException e) {
@@ -89,6 +95,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
     domainWarehouse.stock = data.getStock() != null ? data.getStock() : 0;
 
     try {
+      LOG.infov("Replacing warehouse via API for business unit code {0}", businessUnitCode);
       // Replace warehouse through use case (includes validations)
       replaceWarehouseOperation.replace(domainWarehouse);
 

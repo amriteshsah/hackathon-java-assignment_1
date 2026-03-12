@@ -6,9 +6,12 @@ import com.fulfilment.application.monolith.warehouses.domain.ports.LocationResol
 import com.fulfilment.application.monolith.warehouses.domain.ports.ReplaceWarehouseOperation;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
+
+  private static final Logger LOG = Logger.getLogger(ReplaceWarehouseUseCase.class);
 
   private final WarehouseStore warehouseStore;
   private final LocationResolver locationResolver;
@@ -20,47 +23,51 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
 
   @Override
   public void replace(Warehouse newWarehouse) {
-    // Validation 1: Warehouse must exist
+    LOG.infov("Replacing warehouse with business unit code {0}", newWarehouse.businessUnitCode);
+
     Warehouse existing = warehouseStore.findByBusinessUnitCode(newWarehouse.businessUnitCode);
     if (existing == null) {
       throw new IllegalArgumentException(
-          "Warehouse with business unit code '" + newWarehouse.businessUnitCode + "' does not exist");
+          "Warehouse with business unit code '"
+              + newWarehouse.businessUnitCode
+              + "' does not exist");
     }
 
-    // Validation 2: Warehouse must not be archived
     if (existing.archivedAt != null) {
       throw new IllegalArgumentException(
-          "Warehouse with business unit code '" + newWarehouse.businessUnitCode + "' is archived and cannot be replaced");
+          "Warehouse with business unit code '"
+              + newWarehouse.businessUnitCode
+              + "' is archived and cannot be replaced");
     }
 
-    // Validation 3: Location must be valid
     Location location = locationResolver.resolveByIdentifier(newWarehouse.location);
     if (location == null) {
-      throw new IllegalArgumentException(
-          "Location '" + newWarehouse.location + "' is not valid");
+      throw new IllegalArgumentException("Location '" + newWarehouse.location + "' is not valid");
     }
 
-    // Validation 4: Capacity validation
-    // - Capacity cannot exceed location's max capacity
     if (newWarehouse.capacity > location.maxCapacity()) {
       throw new IllegalArgumentException(
-          "Warehouse capacity (" + newWarehouse.capacity +
-          ") exceeds location max capacity (" + location.maxCapacity() + ")");
+          "Warehouse capacity ("
+              + newWarehouse.capacity
+              + ") exceeds location max capacity ("
+              + location.maxCapacity()
+              + ")");
     }
 
-    // - Stock cannot exceed capacity
     if (newWarehouse.stock > newWarehouse.capacity) {
       throw new IllegalArgumentException(
-          "Warehouse stock (" + newWarehouse.stock +
-          ") exceeds warehouse capacity (" + newWarehouse.capacity + ")");
+          "Warehouse stock ("
+              + newWarehouse.stock
+              + ") exceeds warehouse capacity ("
+              + newWarehouse.capacity
+              + ")");
     }
 
-    // Update warehouse fields (preserve createdAt, businessUnitCode, archivedAt)
     existing.location = newWarehouse.location;
     existing.capacity = newWarehouse.capacity;
     existing.stock = newWarehouse.stock;
 
-    // Update the warehouse
     warehouseStore.update(existing);
+    LOG.infov("Warehouse {0} replaced successfully", newWarehouse.businessUnitCode);
   }
 }
