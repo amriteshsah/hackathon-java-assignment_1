@@ -6,6 +6,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,12 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   private static final Logger LOG = Logger.getLogger(WarehouseRepository.class);
 
   @Override
+  @Transactional
   public List<Warehouse> getAll() {
     return this.listAll().stream().map(DbWarehouse::toWarehouse).toList();
   }
 
+  @Transactional
   public List<Warehouse> search(
       String location,
       Integer minCapacity,
@@ -69,6 +72,7 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   }
 
   @Override
+  @Transactional
   public void create(Warehouse warehouse) {
     DbWarehouse dbWarehouse = new DbWarehouse();
     dbWarehouse.businessUnitCode = warehouse.businessUnitCode;
@@ -85,6 +89,7 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   }
 
   @Override
+  @Transactional
   public void update(Warehouse warehouse) {
     DbWarehouse current = find("businessUnitCode", warehouse.businessUnitCode).firstResult();
     if (current == null) {
@@ -111,12 +116,14 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   }
 
   @Override
+  @Transactional
   public void remove(Warehouse warehouse) {
     delete("businessUnitCode", warehouse.businessUnitCode);
     LOG.infov("Removed warehouse with business unit code {0}", warehouse.businessUnitCode);
   }
 
   @Override
+  @Transactional
   public Warehouse findByBusinessUnitCode(String buCode) {
     DbWarehouse dbWarehouse = find("businessUnitCode", buCode).firstResult();
     return dbWarehouse != null ? dbWarehouse.toWarehouse() : null;
