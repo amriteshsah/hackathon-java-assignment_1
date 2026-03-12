@@ -22,7 +22,7 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
   }
 
   @Override
-  public void replace(Warehouse newWarehouse) {
+  public Warehouse replace(Warehouse newWarehouse) {
     LOG.infov("Replacing warehouse with business unit code {0}", newWarehouse.businessUnitCode);
 
     Warehouse existing = warehouseStore.findByBusinessUnitCode(newWarehouse.businessUnitCode);
@@ -69,5 +69,6 @@ public class ReplaceWarehouseUseCase implements ReplaceWarehouseOperation {
 
     warehouseStore.update(existing);
     LOG.infov("Warehouse {0} replaced successfully", newWarehouse.businessUnitCode);
+    return existing;
   }
 }
