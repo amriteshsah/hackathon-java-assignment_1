@@ -1,18 +1,27 @@
 package com.fulfilment.application.monolith.location;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.junit.jupiter.api.Test;
 
-public class LocationGatewayTest {
+class LocationGatewayTest {
+
+  private final LocationGateway locationGateway = new LocationGateway();
 
   @Test
-  public void testWhenResolveExistingLocationShouldReturn() {
-    // given
-    // LocationGateway locationGateway = new LocationGateway();
+  void shouldResolveExistingLocation() {
+    var location = locationGateway.resolveByIdentifier("ZWOLLE-001");
 
-    // when
-    // Location location = locationGateway.resolveByIdentifier("ZWOLLE-001");
+    assertNotNull(location);
+    assertEquals("ZWOLLE-001", location.identifier());
+    assertEquals(1, location.maxNumberOfWarehouses());
+    assertEquals(40, location.maxCapacity());
+  }
 
-    // then
-    // assertEquals(location.identification, "ZWOLLE-001");
+  @Test
+  void shouldReturnNullForUnknownLocation() {
+    assertNull(locationGateway.resolveByIdentifier("UNKNOWN-001"));
   }
 }

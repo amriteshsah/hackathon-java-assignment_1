@@ -3,19 +3,76 @@ package com.fulfilment.application.monolith.warehouses.adapters.database;
 import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.transaction.Transactional;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class WarehouseRepository implements WarehouseStore, PanacheRepository<DbWarehouse> {
 
+  private static final Logger LOG = Logger.getLogger(WarehouseRepository.class);
+
   @Override
+  @Transactional
   public List<Warehouse> getAll() {
     return this.listAll().stream().map(DbWarehouse::toWarehouse).toList();
   }
 
+  @Transactional
+  public List<Warehouse> search(
+      String location,
+      Integer minCapacity,
+      Integer maxCapacity,
+      String sortBy,
+      String sortOrder,
+      int page,
+      int pageSize) {
+    StringBuilder query = new StringBuilder("archivedAt is null");
+    Map<String, Object> parameters = new HashMap<>();
+
+    if (location != null && !location.isBlank()) {
+      query.append(" and location = :location");
+      parameters.put("location", location);
+    }
+
+    if (minCapacity != null) {
+      query.append(" and capacity >= :minCapacity");
+      parameters.put("minCapacity", minCapacity);
+    }
+
+    if (maxCapacity != null) {
+      query.append(" and capacity <= :maxCapacity");
+      parameters.put("maxCapacity", maxCapacity);
+    }
+
+    String sortField = "capacity".equals(sortBy) ? "capacity" : "createdAt";
+    Sort.Direction direction = "desc".equalsIgnoreCase(sortOrder) ? Sort.Direction.Descending : Sort.Direction.Ascending;
+
+    LOG.infov(
+        "Searching warehouses [location={0}, minCapacity={1}, maxCapacity={2}, sortBy={3}, sortOrder={4}, page={5}, pageSize={6}]",
+        location,
+        minCapacity,
+        maxCapacity,
+        sortField,
+        direction,
+        page,
+        pageSize);
+
+    return find(query.toString(), Sort.by(sortField, direction), parameters)
+        .page(page, pageSize)
+        .list()
+        .stream()
+        .map(DbWarehouse::toWarehouse)
+        .toList();
+  }
+
   @Override
+  @Transactional
   public void create(Warehouse warehouse) {
     DbWarehouse dbWarehouse = new DbWarehouse();
     dbWarehouse.businessUnitCode = warehouse.businessUnitCode;
@@ -27,9 +84,12 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
 
     this.persistAndFlush(dbWarehouse);
     warehouse.version = dbWarehouse.version;
+
+    LOG.infov("Created warehouse with business unit code {0}", warehouse.businessUnitCode);
   }
 
   @Override
+  @Transactional
   public void update(Warehouse warehouse) {
     DbWarehouse current = find("businessUnitCode", warehouse.businessUnitCode).firstResult();
     if (current == null) {
@@ -52,14 +112,18 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
     this.persistAndFlush(current);
 
     warehouse.version = current.version;
+    LOG.infov("Updated warehouse with business unit code {0}", warehouse.businessUnitCode);
   }
 
   @Override
+  @Transactional
   public void remove(Warehouse warehouse) {
     delete("businessUnitCode", warehouse.businessUnitCode);
+    LOG.infov("Removed warehouse with business unit code {0}", warehouse.businessUnitCode);
   }
 
   @Override
+  @Transactional
   public Warehouse findByBusinessUnitCode(String buCode) {
     DbWarehouse dbWarehouse = find("businessUnitCode", buCode).firstResult();
     return dbWarehouse != null ? dbWarehouse.toWarehouse() : null;
